@@ -205,7 +205,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   }
 
   void refreshTotal() {
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override

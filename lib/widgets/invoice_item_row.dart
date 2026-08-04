@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/invoice_item.dart';
 
-class InvoiceItemRow extends StatelessWidget {
+class InvoiceItemRow extends StatefulWidget {
   final InvoiceItem item;
   final VoidCallback onDelete;
   final VoidCallback onSelectProduct;
@@ -17,13 +17,51 @@ class InvoiceItemRow extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final qtyController = TextEditingController(text: item.qty.toString());
+  State<InvoiceItemRow> createState() => _InvoiceItemRowState();
+}
 
-    final rateController = TextEditingController(
-      text: item.rate.toStringAsFixed(2),
+class _InvoiceItemRowState extends State<InvoiceItemRow> {
+  late final TextEditingController _qtyController;
+  late final TextEditingController _rateController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _qtyController = TextEditingController(
+      text: widget.item.qty == 0 ? '' : widget.item.qty.toString(),
     );
 
+    _rateController = TextEditingController(
+      text: widget.item.rate == 0 ? '' : widget.item.rate.toStringAsFixed(2),
+    );
+  }
+
+  @override
+  void dispose() {
+    _qtyController.dispose();
+    _rateController.dispose();
+    super.dispose();
+  }
+
+  void _qtyChanged(String value) {
+    widget.item.qty = double.tryParse(value) ?? 0;
+
+    setState(() {});
+
+    widget.onChanged();
+  }
+
+  void _rateChanged(String value) {
+    widget.item.rate = double.tryParse(value) ?? 0;
+
+    setState(() {});
+
+    widget.onChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Padding(
@@ -34,20 +72,21 @@ class InvoiceItemRow extends StatelessWidget {
               children: [
                 Expanded(
                   child: InkWell(
-                    onTap: onSelectProduct,
+                    onTap: widget.onSelectProduct,
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: "Product",
                         border: OutlineInputBorder(),
                         suffixIcon: Icon(Icons.search),
                       ),
-                      child: Text(item.product?.name ?? "Select Product"),
+                      child: Text(
+                        widget.item.product?.name ?? "Select Product",
+                      ),
                     ),
                   ),
                 ),
-
                 IconButton(
-                  onPressed: onDelete,
+                  onPressed: widget.onDelete,
                   icon: const Icon(Icons.delete, color: Colors.red),
                 ),
               ],
@@ -59,20 +98,15 @@ class InvoiceItemRow extends StatelessWidget {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: qtyController,
-                    keyboardType: TextInputType.number,
-                    // keyboardType: const TextInputType.numberWithOptions(
-                    //   decimal: false,
-                    // ),
+                    controller: _qtyController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: "Qty",
                       border: OutlineInputBorder(),
                     ),
-                    textDirection: TextDirection.ltr,
-                    onChanged: (value) {
-                      item.qty = double.tryParse(value) ?? 0;
-                      onChanged();
-                    },
+                    onChanged: _qtyChanged,
                   ),
                 ),
 
@@ -80,7 +114,7 @@ class InvoiceItemRow extends StatelessWidget {
 
                 Expanded(
                   child: TextField(
-                    controller: rateController,
+                    controller: _rateController,
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -88,11 +122,7 @@ class InvoiceItemRow extends StatelessWidget {
                       labelText: "Rate",
                       border: OutlineInputBorder(),
                     ),
-                    textDirection: TextDirection.ltr,
-                    onChanged: (value) {
-                      item.rate = double.tryParse(value) ?? 0;
-                      onChanged();
-                    },
+                    onChanged: _rateChanged,
                   ),
                 ),
 
@@ -101,7 +131,7 @@ class InvoiceItemRow extends StatelessWidget {
                 SizedBox(
                   width: 90,
                   child: Text(
-                    item.amount.toStringAsFixed(2),
+                    widget.item.amount.toStringAsFixed(2),
                     textAlign: TextAlign.end,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
