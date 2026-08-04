@@ -4,4 +4,5 @@ class Api {
   static const String customer = "$baseUrl/customer";
   static const String product = "$baseUrl/product";
   static const String invoice = "$baseUrl/invoice";
+  static const String lastinvoice = "$baseUrl/invoice/lastinvoice";
 }

@@ -75,11 +75,11 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
     bool success;
 
-    if (widget.invoiceNo == null) {
-      success = await InvoiceService().insertInvoice(invoice);
-    } else {
-      success = await InvoiceService().updateInvoice(invoice);
-    }
+    // if (widget.invoiceNo == null) {
+    success = await InvoiceService().insertInvoice(invoice);
+    // } else {
+    //  success = await InvoiceService().updateInvoice(invoice);
+    //}
     if (!mounted) return;
 
     if (success) {
@@ -171,7 +171,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     }
   }
 
-  Future<void> selectProduct() async {
+  Future<void> selectProduct(int index) async {
     final Product? product = await showDialog<Product>(
       context: context,
       builder: (_) => const ProductSearchDialog(),
@@ -179,7 +179,13 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
     if (product != null) {
       setState(() {
-        selectedProduct = product;
+        items[index].product = product;
+        items[index].rate = product.salerate;
+
+        // Optional
+        if (items[index].qty == 0) {
+          items[index].qty = 1;
+        }
       });
     }
   }
@@ -219,9 +225,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       ),
 
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          saveInvoice;
-        },
+        onPressed: saveInvoice,
         icon: const Icon(Icons.save),
         label: const Text("SAVE"),
       ),
@@ -341,7 +345,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           item: items[index],
                           onDelete: () => removeItem(index),
                           onSelectProduct: () {
-                            selectProduct();
+                            selectProduct(index);
                           },
                           onChanged: refreshTotal,
                         );

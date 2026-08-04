@@ -68,7 +68,7 @@ class InvoiceService {
   /// Update
   ///------------------------------
   Future<bool> updateInvoice(Invoice invoice) async {
-    final response = await http.put(
+    final response = await http.post(
       Uri.parse(Api.invoice),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode(invoice.toJson()),

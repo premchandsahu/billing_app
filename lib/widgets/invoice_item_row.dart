@@ -60,13 +60,15 @@ class InvoiceItemRow extends StatelessWidget {
                 Expanded(
                   child: TextField(
                     controller: qtyController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
+                    keyboardType: TextInputType.number,
+                    // keyboardType: const TextInputType.numberWithOptions(
+                    //   decimal: false,
+                    // ),
                     decoration: const InputDecoration(
                       labelText: "Qty",
                       border: OutlineInputBorder(),
                     ),
+                    textDirection: TextDirection.ltr,
                     onChanged: (value) {
                       item.qty = double.tryParse(value) ?? 0;
                       onChanged();
@@ -86,6 +88,7 @@ class InvoiceItemRow extends StatelessWidget {
                       labelText: "Rate",
                       border: OutlineInputBorder(),
                     ),
+                    textDirection: TextDirection.ltr,
                     onChanged: (value) {
                       item.rate = double.tryParse(value) ?? 0;
                       onChanged();
