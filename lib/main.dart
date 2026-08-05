@@ -1,3 +1,4 @@
+import 'package:billing_app/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'screens/invoice_list_screen.dart';
 
@@ -17,7 +18,8 @@ class BillingApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const InvoiceListScreen(),
+      // home: const InvoiceListScreen(centerno: 1),
+      home: LoginScreen(),
     );
   }
 }

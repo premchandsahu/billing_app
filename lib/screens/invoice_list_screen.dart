@@ -7,7 +7,8 @@ import '../models/customer.dart';
 import 'invoice_screen.dart';
 
 class InvoiceListScreen extends StatefulWidget {
-  const InvoiceListScreen({super.key});
+  final int centerno;
+  const InvoiceListScreen({super.key, required this.centerno});
 
   @override
   State<InvoiceListScreen> createState() => _InvoiceListScreenState();
@@ -44,7 +45,7 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
         fromDate: fromDate,
         toDate: toDate,
         custno: selectedCustomerNo,
-        centerno: 1,
+        centerno: widget.centerno,
       );
     } catch (e) {
       if (mounted) {
@@ -107,7 +108,9 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
         onPressed: () async {
           await Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const InvoiceScreen()),
+            MaterialPageRoute(
+              builder: (_) => InvoiceScreen(centerno: widget.centerno),
+            ),
           );
 
           loadInvoices();
@@ -236,8 +239,10 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                InvoiceScreen(invoiceNo: invoice.invoiceno),
+                            builder: (_) => InvoiceScreen(
+                              invoiceNo: invoice.invoiceno,
+                              centerno: widget.centerno,
+                            ),
                           ),
                         );
 

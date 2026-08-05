@@ -12,8 +12,9 @@ import '../widgets/invoice_item_row.dart';
 
 class InvoiceScreen extends StatefulWidget {
   final int? invoiceNo;
+  final int? centerno;
 
-  const InvoiceScreen({super.key, this.invoiceNo});
+  const InvoiceScreen({super.key, this.invoiceNo, this.centerno});
 
   @override
   State<InvoiceScreen> createState() => _InvoiceScreenState();
@@ -21,6 +22,7 @@ class InvoiceScreen extends StatefulWidget {
 
 class _InvoiceScreenState extends State<InvoiceScreen> {
   final DateFormat df = DateFormat("dd-MM-yyyy");
+  int? lastinvoiceno = 0;
 
   DateTime invoiceDate = DateTime.now();
   List<InvoiceItem> items = [];
@@ -38,6 +40,15 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     if (widget.invoiceNo != null) {
       loadInvoice();
     }
+    lastInvoice(1);
+  }
+
+  Future<void> lastInvoice(int centerno) async {
+    final res = await InvoiceService().lastInvoice(centerno);
+
+    setState(() {
+      lastinvoiceno = res;
+    });
   }
 
   Future<void> saveInvoice() async {
@@ -67,7 +78,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       invoiceno: widget.invoiceNo,
       invoicedate: invoiceDate,
       custno: selectedCustomer!.custno,
-      centerno: 1,
+      centerno: widget.centerno!,
       total: grandTotal,
       remarks: remarksController.text,
       details: lines,
@@ -244,12 +255,20 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
-                  Text(
-                    "Invoice No : ${widget.invoiceNo ?? "NEW"}",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    //crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text(
+                        "Invoice No : ${widget.invoiceNo ?? "NEW"}",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text("Center:"),
+                      Text("Last Invoice : $lastinvoiceno"),
+                    ],
                   ),
 
                   const SizedBox(height: 20),

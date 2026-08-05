@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:billing_app/models/centers.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/customer.dart';
@@ -77,6 +78,16 @@ class InvoiceService {
     return response.statusCode == 200;
   }
 
+  Future<int> lastInvoice(int centerno) async {
+    final response = await http.post(
+      Uri.parse(Api.lastinvoice),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"centerno": centerno}),
+    );
+    Map<String, dynamic> jsonMap = jsonDecode(response.body.toString());
+    return jsonMap['lastinvoiceno'] as int;
+  }
+
   ///------------------------------
   /// Delete
   ///------------------------------
@@ -132,6 +143,40 @@ class InvoiceService {
       }
 
       return Invoice.fromJson(data);
+    }
+
+    throw Exception("Unable to load invoice");
+  }
+
+  ///------------------------------
+  /// Centers
+  ///------------------------------
+  Future<List<Centers>> getCenters() async {
+    final response = await http.get(Uri.parse(Api.center));
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Centers.fromJson(e)).toList();
+    }
+
+    throw Exception("Unable to load centers");
+  }
+
+  Future<Centers> getCenter({required int centerNo}) async {
+    final response = await http.get(Uri.parse("${Api.center}/$centerNo"));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // Handle both { ... } and [ { ... } ] response formats.
+      if (data is List) {
+        if (data.isEmpty) {
+          throw Exception("Center not found");
+        }
+        return Centers.fromJson(data.first);
+      }
+
+      return Centers.fromJson(data);
     }
 
     throw Exception("Unable to load invoice");
