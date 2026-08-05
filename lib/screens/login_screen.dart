@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: selectedCenter == null ? Colors.grey : Colors.black,
                 ),
               ),
-              SizedBox(height: 12),
+              SizedBox(height: 120),
               ElevatedButton.icon(
                 onPressed: letsbBegin,
                 icon: const Icon(Icons.skip_next),

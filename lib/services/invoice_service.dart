@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:billing_app/models/centers.dart';
+import 'package:billing_app/models/customer_receipt_summary.dart';
+import 'package:billing_app/models/paymentmode.dart';
+import 'package:billing_app/models/receipt.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/customer.dart';
@@ -180,5 +183,95 @@ class InvoiceService {
     }
 
     throw Exception("Unable to load invoice");
+  }
+
+  ///------------------------------
+  /// Customer receipt
+  ///------------------------------
+  Future<List<Receipt>> getCustomerreceipts() async {
+    final response = await http.get(Uri.parse(Api.customerreceipt));
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Receipt.fromJson(e)).toList();
+    }
+
+    throw Exception("Unable to load receipts");
+  }
+
+  Future<Receipt> getCustomerreceipt({required int receiptno}) async {
+    final response = await http.get(
+      Uri.parse("${Api.customerreceipt}/$receiptno"),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // Handle both { ... } and [ { ... } ] response formats.
+      if (data is List) {
+        if (data.isEmpty) {
+          throw Exception("Center not found");
+        }
+        return Receipt.fromJson(data.first);
+      }
+
+      return Receipt.fromJson(data);
+    }
+    throw Exception("Unable to load centers");
+  }
+
+  Future<bool> insertReceipt(Receipt receipt) async {
+    final response = await http.post(
+      Uri.parse(Api.customerreceipt),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(receipt.toJson()),
+    );
+
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  Future<bool> updateReceipt(Receipt receipt) async {
+    final response = await http.put(
+      Uri.parse(Api.customerreceipt),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(receipt.toJson()),
+    );
+
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  Future<List<Paymentmode>> getPaymentmode() async {
+    final response = await http.get(Uri.parse(Api.paymentmode));
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((e) => Paymentmode.fromJson(e)).toList();
+    }
+
+    throw Exception("Unable to load receipts");
+  }
+
+  Future<List<CustomerReceiptSummary>> getReceiptSummary({
+    required DateTime fromDate,
+    required DateTime toDate,
+    int? custno,
+  }) async {
+    final response = await http.post(
+      Uri.parse("${Api.customerreceipt}/fetchpostcustomerreceipts"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "fromdate": fromDate.toIso8601String().split("T").first,
+        "todate": toDate.toIso8601String().split("T").first,
+        "custno": custno,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final List list = jsonDecode(response.body);
+
+      return list.map((e) => CustomerReceiptSummary.fromJson(e)).toList();
+    }
+
+    throw Exception("Unable to load invoices");
   }
 }

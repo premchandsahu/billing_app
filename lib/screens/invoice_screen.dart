@@ -1,3 +1,4 @@
+import 'package:billing_app/models/centers.dart';
 import 'package:billing_app/models/invoice.dart';
 import 'package:billing_app/models/product.dart';
 import 'package:billing_app/services/invoice_service.dart';
@@ -12,9 +13,9 @@ import '../widgets/invoice_item_row.dart';
 
 class InvoiceScreen extends StatefulWidget {
   final int? invoiceNo;
-  final int? centerno;
+  final int centerno;
 
-  const InvoiceScreen({super.key, this.invoiceNo, this.centerno});
+  const InvoiceScreen({super.key, this.invoiceNo, required this.centerno});
 
   @override
   State<InvoiceScreen> createState() => _InvoiceScreenState();
@@ -28,6 +29,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   List<InvoiceItem> items = [];
   Customer? selectedCustomer;
   Product? selectedProduct;
+  Centers? centers;
 
   final remarksController = TextEditingController();
 
@@ -40,7 +42,8 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     if (widget.invoiceNo != null) {
       loadInvoice();
     }
-    lastInvoice(1);
+    lastInvoice(widget.centerno);
+    getcenter();
   }
 
   Future<void> lastInvoice(int centerno) async {
@@ -48,6 +51,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
     setState(() {
       lastinvoiceno = res;
+    });
+  }
+
+  Future<void> getcenter() async {
+    final res = await InvoiceService().getCenter(centerNo: widget.centerno);
+
+    setState(() {
+      centers = res;
     });
   }
 
@@ -78,7 +89,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       invoiceno: widget.invoiceNo,
       invoicedate: invoiceDate,
       custno: selectedCustomer!.custno,
-      centerno: widget.centerno!,
+      centerno: widget.centerno,
       total: grandTotal,
       remarks: remarksController.text,
       details: lines,
@@ -266,19 +277,21 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text("Center:"),
-                      Text("Last Invoice : $lastinvoiceno"),
+                      Text(centers?.centername ?? " "),
                     ],
                   ),
 
                   const SizedBox(height: 20),
-
-                  OutlinedButton.icon(
-                    onPressed: pickDate,
-                    icon: const Icon(Icons.calendar_today),
-                    label: Text(df.format(invoiceDate)),
+                  Row(
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: pickDate,
+                        icon: const Icon(Icons.calendar_today),
+                        label: Text(df.format(invoiceDate)),
+                      ),
+                      Text("   L Inv: $lastinvoiceno"),
+                    ],
                   ),
-
                   const SizedBox(height: 15),
 
                   InkWell(
