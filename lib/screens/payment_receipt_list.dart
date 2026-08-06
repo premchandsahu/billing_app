@@ -1,5 +1,11 @@
+import 'package:billing_app/models/customer.dart';
+import 'package:billing_app/models/customer_receipt_summary.dart';
+import 'package:billing_app/screens/invoice_screen.dart';
+import 'package:billing_app/screens/payment_receipt.dart';
 import 'package:billing_app/services/invoice_service.dart';
+import 'package:billing_app/widgets/customer_search_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class PayementReceiptList extends StatefulWidget {
   const PayementReceiptList({super.key});
@@ -19,7 +25,7 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
 
   final InvoiceService service = InvoiceService();
 
-  List<InvoiceSummary> invoices = [];
+  List<CustomerReceiptSummary> receipts = [];
 
   bool loading = false;
 
@@ -35,11 +41,10 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
     });
 
     try {
-      invoices = await service.getInvoiceSummary(
+      receipts = await service.getReceiptSummary(
         fromDate: fromDate,
         toDate: toDate,
         custno: selectedCustomerNo,
-        centerno: widget.centerno,
       );
     } catch (e) {
       if (mounted) {
@@ -97,13 +102,13 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Invoice List"), centerTitle: true),
+      appBar: AppBar(title: const Text("Receipts List"), centerTitle: true),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => InvoiceScreen(centerno: widget.centerno),
+              builder: (_) => PaymentReceipt(), //place holder for now
             ),
           );
 
@@ -196,7 +201,7 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
             const SizedBox(height: 15),
 
             const Text(
-              "Invoices",
+              "Receipts",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
@@ -207,12 +212,12 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                 padding: EdgeInsets.all(40),
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (invoices.isEmpty)
+            else if (receipts.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(30),
                 child: Center(
                   child: Text(
-                    "No invoices found",
+                    "No receipts found",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -221,9 +226,9 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: invoices.length,
+                itemCount: receipts.length,
                 itemBuilder: (context, index) {
-                  final invoice = invoices[index];
+                  final receipt = receipts[index];
 
                   return Card(
                     elevation: 2,
@@ -233,9 +238,8 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => InvoiceScreen(
-                              invoiceNo: invoice.invoiceno,
-                              centerno: widget.centerno,
+                            builder: (_) => PaymentReceipt(
+                              customerreceiptno: receipt.customerreceiptno,
                             ),
                           ),
                         );
@@ -243,27 +247,27 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                         loadInvoices();
                       },
                       leading: CircleAvatar(
-                        child: Text(invoice.invoiceno.toString()),
+                        child: Text(receipt.customerreceiptno.toString()),
                       ),
                       title: Text(
-                        invoice.customername,
+                        receipt.customername,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 5),
-                          Text(df.format(invoice.invoicedate)),
+                          Text(df.format(receipt.customerreceiptdate)),
                           const SizedBox(height: 5),
                           Text(
-                            invoice.description,
+                            receipt.paymentmodedescription,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                       trailing: Text(
-                        "₹${invoice.totalSAmount.toStringAsFixed(2)}",
+                        "₹${receipt.receiptamount.toStringAsFixed(2)}",
                         style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,

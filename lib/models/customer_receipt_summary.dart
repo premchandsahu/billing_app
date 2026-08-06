@@ -1,8 +1,8 @@
 class CustomerReceiptSummary {
   int customerreceiptno;
-  String customerreceiptdate;
+  DateTime customerreceiptdate;
   String customername;
-  String receiptamount;
+  double receiptamount;
   String paymentmodedescription;
   String documentnumber;
   String remarks;
@@ -20,9 +20,9 @@ class CustomerReceiptSummary {
   factory CustomerReceiptSummary.fromJson(Map<String, dynamic> json) {
     return CustomerReceiptSummary(
       customerreceiptno: json['customerreceiptno'],
-      customerreceiptdate: json['customerreceiptdate'],
+      customerreceiptdate: DateTime.parse(json['customerreceiptdate']),
       customername: json['customername'],
-      receiptamount: json['receiptamount'],
+      receiptamount: double.tryParse(json['receiptamount'].toString()) ?? 0,
       paymentmodedescription: json['paymentmodedescription'],
       documentnumber: json['documentnumber'],
       remarks: json['remarks'],

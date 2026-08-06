@@ -1,5 +1,5 @@
 import 'package:billing_app/models/centers.dart';
-import 'package:billing_app/screens/invoice_list_screen.dart';
+import 'package:billing_app/screens/menu_screen.dart';
 import 'package:billing_app/widgets/center_search_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -39,7 +39,8 @@ class _LoginScreenState extends State<LoginScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => InvoiceListScreen(centerno: selectedcenterno),
+        // builder: (_) => InvoiceListScreen(centerno: selectedcenterno),
+        builder: (_) => MainMenu(centerno: selectedcenterno),
       ),
     );
   }
