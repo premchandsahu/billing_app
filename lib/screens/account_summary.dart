@@ -1,20 +1,20 @@
+import 'package:billing_app/models/account_balance.dart';
 import 'package:billing_app/models/customer.dart';
-import 'package:billing_app/models/customer_receipt_summary.dart';
-import 'package:billing_app/screens/invoice_screen.dart';
+import 'package:billing_app/screens/account_ledger.dart';
 import 'package:billing_app/screens/payment_receipt.dart';
 import 'package:billing_app/services/invoice_service.dart';
 import 'package:billing_app/widgets/customer_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class PayementReceiptList extends StatefulWidget {
-  const PayementReceiptList({super.key});
+class AccountSummaryList extends StatefulWidget {
+  const AccountSummaryList({super.key});
 
   @override
-  State<PayementReceiptList> createState() => _PayementReceiptListState();
+  State<AccountSummaryList> createState() => _AccountSummaryListState();
 }
 
-class _PayementReceiptListState extends State<PayementReceiptList> {
+class _AccountSummaryListState extends State<AccountSummaryList> {
   final DateFormat df = DateFormat("dd-MM-yyyy");
 
   DateTime fromDate = DateTime.now();
@@ -25,7 +25,7 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
 
   final InvoiceService service = InvoiceService();
 
-  List<CustomerReceiptSummary> receipts = [];
+  List<AccountBalance> receipts = [];
 
   bool loading = false;
 
@@ -41,9 +41,9 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
     });
 
     try {
-      receipts = await service.getReceiptSummary(
+      receipts = await service.getAccountBalance(
         fromDate: fromDate,
-        toDate: DateUtils.addDaysToDate(toDate, 1),
+        toDate: toDate,
         custno: selectedCustomerNo,
       );
     } catch (e) {
@@ -102,7 +102,10 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Receipts List"), centerTitle: true),
+      appBar: AppBar(
+        title: const Text("Account Balance List"),
+        centerTitle: true,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           await Navigator.push(
@@ -164,21 +167,13 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: _selectFromDate,
-                            icon: const Icon(Icons.calendar_today),
-                            label: Text(df.format(fromDate)),
-                          ),
-                        ),
-
-                        const SizedBox(width: 10),
-
-                        Expanded(
-                          child: OutlinedButton.icon(
                             onPressed: _selectToDate,
                             icon: const Icon(Icons.calendar_today),
                             label: Text(df.format(toDate)),
                           ),
                         ),
+
+                        const SizedBox(width: 10),
                       ],
                     ),
 
@@ -201,7 +196,7 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
             const SizedBox(height: 15),
 
             const Text(
-              "Receipts",
+              "Balances",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
@@ -217,7 +212,7 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                 padding: EdgeInsets.all(30),
                 child: Center(
                   child: Text(
-                    "No receipts found",
+                    "No account balances found",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -238,17 +233,19 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => PaymentReceipt(
-                              customerreceiptno: receipt.customerreceiptno,
+                            builder: (_) => AccountLedger(
+                              custno: receipt.custno,
+                              custname: receipt.customername,
+                              todate: DateUtils.addDaysToDate(fromDate, 1),
                             ),
                           ),
                         );
 
                         loadInvoices();
                       },
-                      leading: CircleAvatar(
-                        child: Text(receipt.customerreceiptno.toString()),
-                      ),
+                      //  leading: CircleAvatar(
+                      //    child: Text(receipt.customerreceiptno.toString()),
+                      //  ),
                       title: Text(
                         receipt.customername,
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -257,17 +254,16 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 5),
-                          Text(df.format(receipt.customerreceiptdate)),
-                          const SizedBox(height: 5),
                           Text(
-                            receipt.paymentmodedescription,
+                            receipt.customerphone1,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          const SizedBox(height: 5),
                         ],
                       ),
                       trailing: Text(
-                        "₹${receipt.receiptamount.toStringAsFixed(2)}",
+                        "₹${receipt.balance.toStringAsFixed(2)}",
                         style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,

@@ -1,5 +1,6 @@
+import 'package:billing_app/models/account_balance.dart';
+import 'package:billing_app/models/account_transaction.dart';
 import 'package:billing_app/models/customer.dart';
-import 'package:billing_app/models/customer_receipt_summary.dart';
 import 'package:billing_app/screens/invoice_screen.dart';
 import 'package:billing_app/screens/payment_receipt.dart';
 import 'package:billing_app/services/invoice_service.dart';
@@ -7,14 +8,23 @@ import 'package:billing_app/widgets/customer_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class PayementReceiptList extends StatefulWidget {
-  const PayementReceiptList({super.key});
+class AccountLedger extends StatefulWidget {
+  final int custno;
+  final DateTime todate;
+  final String custname;
+
+  const AccountLedger({
+    super.key,
+    required this.custno,
+    required this.todate,
+    required this.custname,
+  });
 
   @override
-  State<PayementReceiptList> createState() => _PayementReceiptListState();
+  State<AccountLedger> createState() => _AccountLedgerListState();
 }
 
-class _PayementReceiptListState extends State<PayementReceiptList> {
+class _AccountLedgerListState extends State<AccountLedger> {
   final DateFormat df = DateFormat("dd-MM-yyyy");
 
   DateTime fromDate = DateTime.now();
@@ -22,16 +32,23 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
 
   String? selectedCustomer;
   int? selectedCustomerNo;
+  double openingbalance = 0;
 
   final InvoiceService service = InvoiceService();
 
-  List<CustomerReceiptSummary> receipts = [];
+  List<AccountBalance> receipts = [];
+  List<AccountTransaction> accounttransactions = [];
 
   bool loading = false;
 
   @override
   void initState() {
     super.initState();
+    selectedCustomerNo = widget.custno;
+    selectedCustomer = widget.custname;
+    toDate = widget.todate;
+    fromDate = DateUtils.addMonthsToMonthDate(toDate, -1);
+    // fromDate = toDate.add(const Duration(days:30));
     loadInvoices();
   }
 
@@ -41,9 +58,23 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
     });
 
     try {
-      receipts = await service.getReceiptSummary(
+      receipts = await service.getAccountBalance(
         fromDate: fromDate,
-        toDate: DateUtils.addDaysToDate(toDate, 1),
+        toDate: toDate,
+        custno: selectedCustomerNo,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+
+    try {
+      accounttransactions = await service.getAccounTransaction(
+        fromDate: fromDate,
+        toDate: toDate,
         custno: selectedCustomerNo,
       );
     } catch (e) {
@@ -99,22 +130,17 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
     await loadInvoices();
   }
 
+  double get debitamount =>
+      accounttransactions.fold(0, (sum, e) => sum + e.invoiceamount);
+  double get creditamount =>
+      accounttransactions.fold(0, (sum, e) => sum + e.receiptamount);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Receipts List"), centerTitle: true),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PaymentReceipt(), //place holder for now
-            ),
-          );
-
-          loadInvoices();
-        },
-        child: const Icon(Icons.add),
+      appBar: AppBar(
+        title: const Text("Account Balance List"),
+        centerTitle: true,
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
@@ -171,7 +197,6 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
                         ),
 
                         const SizedBox(width: 10),
-
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _selectToDate,
@@ -201,23 +226,34 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
             const SizedBox(height: 15),
 
             const Text(
-              "Receipts",
+              "Balances",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 10),
-
+            if (receipts.isNotEmpty && accounttransactions.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Opening Balance: ${receipts[0].balance}"),
+                  Text("Invoices: $debitamount"),
+                  Text("Receipts: $creditamount"),
+                  Text(
+                    "Closing Balance: ${receipts[0].balance + debitamount - creditamount}",
+                  ),
+                ],
+              ),
             if (loading)
               const Padding(
                 padding: EdgeInsets.all(40),
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (receipts.isEmpty)
+            else if (receipts.isEmpty || accounttransactions.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(30),
                 child: Center(
                   child: Text(
-                    "No receipts found",
+                    "No account balances found",
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -226,50 +262,73 @@ class _PayementReceiptListState extends State<PayementReceiptList> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: receipts.length,
+                itemCount: accounttransactions.length,
                 itemBuilder: (context, index) {
-                  final receipt = receipts[index];
+                  final accounttransaction = accounttransactions[index];
 
                   return Card(
                     elevation: 2,
                     margin: const EdgeInsets.only(bottom: 10),
                     child: ListTile(
                       onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => PaymentReceipt(
-                              customerreceiptno: receipt.customerreceiptno,
+                        if (accounttransaction.ttype == "receipt") {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PaymentReceipt(
+                                customerreceiptno: accounttransaction.tno,
+                              ),
                             ),
-                          ),
-                        );
-
+                          );
+                        } else {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => InvoiceScreen(
+                                invoiceNo: accounttransaction.tno,
+                                centerno: accounttransaction.centerno,
+                              ),
+                            ),
+                          );
+                        }
                         loadInvoices();
                       },
                       leading: CircleAvatar(
-                        child: Text(receipt.customerreceiptno.toString()),
+                        child: Text(
+                          accounttransaction.tno.toString(),
+                          style: TextStyle(fontSize: 11),
+                        ),
                       ),
                       title: Text(
-                        receipt.customername,
+                        df.format(accounttransaction.tdate),
+
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 5),
-                          Text(df.format(receipt.customerreceiptdate)),
+                          Text(
+                            accounttransaction.remarks,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                           const SizedBox(height: 5),
                           Text(
-                            receipt.paymentmodedescription,
-                            maxLines: 2,
+                            accounttransaction.centername,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                       trailing: Text(
-                        "₹${receipt.receiptamount.toStringAsFixed(2)}",
-                        style: const TextStyle(
-                          color: Colors.green,
+                        (accounttransaction.ttype == "receipt"
+                            ? "₹${accounttransaction.receiptamount.toStringAsFixed(2)}"
+                            : "₹${accounttransaction.invoiceamount.toStringAsFixed(2)}"),
+                        style: TextStyle(
+                          color: accounttransaction.ttype == "receipt"
+                              ? Colors.green
+                              : Colors.red,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

@@ -48,9 +48,9 @@ class _PaymentReceiptState extends State<PaymentReceipt> {
       customerreceiptno: widget.customerreceiptno ?? 0,
       customerreceiptdate: receiptdate,
       custno: selectedCustomer!.custno,
-      receiptamount: 0,
+      receiptamount: double.tryParse(receiptamountController.text) ?? 0,
       paymentmodeno: selectedPaymentmode!.paymentmodeno,
-      documentnumber: "11",
+      documentnumber: documentnumberController.text,
       remarks: remarksController.text,
     );
 
@@ -110,6 +110,8 @@ class _PaymentReceiptState extends State<PaymentReceipt> {
 
   @override
   void dispose() {
+    receiptamountController.dispose();
+    documentnumberController.dispose();
     remarksController.dispose();
     super.dispose();
   }
@@ -229,7 +231,47 @@ class _PaymentReceiptState extends State<PaymentReceipt> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 15),
 
+                  TextField(
+                    controller: receiptamountController,
+                    maxLines: 1,
+
+                    decoration: const InputDecoration(
+                      labelText: "Amount",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  InkWell(
+                    onTap: selectPaymentmode,
+
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: "Payment Mode",
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.search),
+                      ),
+                      child: Text(
+                        selectedPaymentmode?.paymentmodedescription ??
+                            "Select Paymentmode",
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  TextField(
+                    controller: documentnumberController,
+                    maxLines: 1,
+
+                    decoration: const InputDecoration(
+                      labelText: "Document Number",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                   const SizedBox(height: 15),
 
                   TextField(

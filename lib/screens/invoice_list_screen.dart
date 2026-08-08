@@ -249,7 +249,10 @@ class _InvoiceListScreenState extends State<InvoiceListScreen> {
                         loadInvoices();
                       },
                       leading: CircleAvatar(
-                        child: Text(invoice.invoiceno.toString()),
+                        child: Text(
+                          invoice.invoiceno.toString(),
+                          style: TextStyle(fontSize: 10),
+                        ),
                       ),
                       title: Text(
                         invoice.customername,

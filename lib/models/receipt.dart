@@ -32,7 +32,7 @@ class Receipt {
   Map<String, dynamic> toJson() {
     return {
       "customerreceiptno": customerreceiptno,
-      "customerreceiptdate": customerreceiptdate,
+      "customerreceiptdate": customerreceiptdate.toIso8601String(),
       "custno": custno,
       "receiptamount": receiptamount,
       "paymentmodeno": paymentmodeno,

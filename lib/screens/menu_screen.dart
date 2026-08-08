@@ -1,3 +1,4 @@
+import 'package:billing_app/screens/account_summary.dart';
 import 'package:billing_app/screens/invoice_list_screen.dart';
 import 'package:billing_app/screens/payment_receipt_list.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ class _MainMenuState extends State<MainMenu> {
     return Scaffold(
       appBar: AppBar(title: const Text("Select option"), centerTitle: true),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ElevatedButton(
             onPressed: () {
@@ -39,9 +42,22 @@ class _MainMenuState extends State<MainMenu> {
             child: Text("Receipts"),
           ),
           SizedBox(height: 12),
-          ElevatedButton(onPressed: () {}, child: Text("Ledger")),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AccountSummaryList()),
+              );
+            },
+            child: Text("Account Summary"),
+          ),
           SizedBox(height: 12),
-          ElevatedButton(onPressed: () {}, child: Text("Exit")),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text("Exit"),
+          ),
         ],
       ),
     );

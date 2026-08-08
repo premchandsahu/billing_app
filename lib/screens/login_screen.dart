@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> letsbBegin() async {
+  Future<void> letsBegin() async {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -49,31 +49,33 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Select center"), centerTitle: true),
-      body: InkWell(
-        onTap: selectCenter,
-        child: InputDecorator(
-          decoration: const InputDecoration(
-            labelText: "Center",
-            border: OutlineInputBorder(),
-            suffixIcon: Icon(Icons.search),
-          ),
-          child: Column(
-            children: [
-              Text(
+      body: Column(
+        children: [
+          InkWell(
+            onTap: selectCenter,
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                labelText: "Center",
+                border: OutlineInputBorder(),
+                suffixIcon: Icon(Icons.search),
+              ),
+              child: Text(
                 selectedCentername ?? "All Center",
                 style: TextStyle(
                   color: selectedCenter == null ? Colors.grey : Colors.black,
                 ),
               ),
-              SizedBox(height: 120),
-              ElevatedButton.icon(
-                onPressed: letsbBegin,
-                icon: const Icon(Icons.skip_next),
-                label: const Text("Proceed"),
-              ),
-            ],
+            ),
           ),
-        ),
+
+          SizedBox(height: 120),
+
+          ElevatedButton.icon(
+            onPressed: letsBegin,
+            icon: const Icon(Icons.skip_next),
+            label: const Text("Proceed"),
+          ),
+        ],
       ),
     );
   }

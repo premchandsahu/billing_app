@@ -1,5 +1,6 @@
 class Api {
-  static const String baseUrl = "http://api.jaihindplaster.com:4000";
+  static const String baseUrl = "http://api.jaihindplaster.com:3000";
+  static const String baseUrlive = "http://api.jaihindplaster.com:3000";
   //static const String baseUrl = "http://69.10.35.56:4000";
   static const String customer = "$baseUrl/customer";
   static const String product = "$baseUrl/product";
@@ -8,4 +9,5 @@ class Api {
   static const String center = "$baseUrl/center";
   static const String customerreceipt = "$baseUrl/customerreceipt";
   static const String paymentmode = "$baseUrl/paymentmode";
+  static const String reports = "$baseUrlive/report";
 }
