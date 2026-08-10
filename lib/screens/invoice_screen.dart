@@ -1,7 +1,10 @@
 import 'package:billing_app/models/centers.dart';
 import 'package:billing_app/models/invoice.dart';
 import 'package:billing_app/models/product.dart';
+import 'package:billing_app/services/invoice_pdf_service.dart';
+import 'package:billing_app/services/invoice_print_service.dart';
 import 'package:billing_app/services/invoice_service.dart';
+import 'package:billing_app/services/invoice_share_service.dart';
 import 'package:billing_app/widgets/product_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -165,6 +168,59 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     super.dispose();
   }
 
+  Future<void> _shareInvoicePdf() async {
+    if (selectedCustomer == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select customer')));
+      return;
+    }
+
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one product')),
+      );
+      return;
+    }
+
+    final pdfBytes = await InvoicePdfService.generateInvoicePdf(
+      invoiceNo: widget.invoiceNo!,
+      invoiceDate: invoiceDate,
+      customer: selectedCustomer!,
+      items: items,
+    );
+
+    await InvoiceShareService.shareInvoicePdf(
+      pdfBytes: pdfBytes,
+      invoiceNo: widget.invoiceNo!,
+    );
+  }
+
+  Future<void> _printInvoice() async {
+    if (selectedCustomer == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select customer')));
+      return;
+    }
+
+    if (items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one product')),
+      );
+      return;
+    }
+
+    final pdfBytes = await InvoicePdfService.generateInvoicePdf(
+      invoiceNo: widget.invoiceNo!,
+      invoiceDate: invoiceDate,
+      customer: selectedCustomer!,
+      items: items,
+    );
+
+    await InvoicePrintService.printInvoice(pdfBytes);
+  }
+
   Future<void> pickDate() async {
     final date = await showDatePicker(
       context: context,
@@ -245,6 +301,16 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               },
               icon: const Icon(Icons.delete),
             ),
+          IconButton(
+            icon: const Icon(Icons.print),
+            tooltip: 'Print',
+            onPressed: _printInvoice,
+          ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: 'WhatsApp / Share',
+            onPressed: _shareInvoicePdf,
+          ),
         ],
       ),
 
