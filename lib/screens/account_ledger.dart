@@ -3,6 +3,8 @@ import 'package:billing_app/models/account_transaction.dart';
 import 'package:billing_app/models/customer.dart';
 import 'package:billing_app/screens/invoice_screen.dart';
 import 'package:billing_app/screens/payment_receipt.dart';
+import 'package:billing_app/services/invoice_print_service.dart';
+import 'package:billing_app/services/ledger_pdf_service.dart';
 import 'package:billing_app/services/invoice_service.dart';
 import 'package:billing_app/widgets/customer_search_dialog.dart';
 import 'package:flutter/material.dart';
@@ -130,6 +132,33 @@ class _AccountLedgerListState extends State<AccountLedger> {
     await loadInvoices();
   }
 
+  Future<void> _printLedger() async {
+    if (selectedCustomer == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select customer')));
+      return;
+    }
+
+    if (accounttransactions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add at least one product')),
+      );
+      return;
+    }
+
+    final pdfBytes = await LedgerPdfService.generatePdf(
+      fromdate: fromDate,
+      todate: toDate,
+      custno: selectedCustomerNo!,
+      customername: selectedCustomer!,
+      openingbalance: receipts[0].balance,
+      items: accounttransactions,
+    );
+
+    await InvoicePrintService.printInvoice(pdfBytes);
+  }
+
   double get debitamount =>
       accounttransactions.fold(0, (sum, e) => sum + e.invoiceamount);
   double get creditamount =>
@@ -141,6 +170,13 @@ class _AccountLedgerListState extends State<AccountLedger> {
       appBar: AppBar(
         title: const Text("Account Balance List"),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.print),
+            tooltip: 'Print',
+            onPressed: _printLedger,
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,

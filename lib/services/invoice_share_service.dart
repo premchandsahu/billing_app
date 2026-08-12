@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
+//import 'package:share_plus/share_plus.dart';
 
 class InvoiceShareService {
   static Future<void> shareInvoicePdf({
@@ -15,8 +15,8 @@ class InvoiceShareService {
 
     await file.writeAsBytes(pdfBytes);
 
-    await SharePlus.instance.share(
-      ShareParams(text: 'Invoice No: $invoiceNo', files: [XFile(file.path)]),
-    );
+    //  await SharePlus.instance.share(
+    //    ShareParams(text: 'Invoice No: $invoiceNo', files: [XFile(file.path)]),
+    //  );
   }
 }
