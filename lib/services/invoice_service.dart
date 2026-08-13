@@ -80,7 +80,7 @@ class InvoiceService {
       body: jsonEncode(invoice.toJson()),
     );
 
-    return response.statusCode == 200;
+    return response.statusCode == 200 || response.statusCode == 201;
   }
 
   Future<int> lastInvoice(int centerno) async {
