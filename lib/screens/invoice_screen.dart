@@ -60,6 +60,28 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
     getcenter();
   }
 
+  Future<void> _completeCurrentItem(int index) async {
+    // Don't create another row if product hasn't been selected.
+    if (items[index].product == null) {
+      return;
+    }
+
+    // Add the next blank item.
+    setState(() {
+      items.add(InvoiceItem(qty: 1));
+    });
+
+    final newIndex = items.length - 1;
+
+    // Wait until the new row has been rendered.
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    if (!mounted) return;
+
+    // Open product selection for the new row.
+    await selectProduct(newIndex);
+  }
+
   // ------------------------------------------------------------
   // LAST INVOICE
   // ------------------------------------------------------------
@@ -704,7 +726,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                         },
                         onChanged: refreshTotal,
                         onNextItem: () {
-                          addItem();
+                          _completeCurrentItem(index);
                         },
                       ),
                     ),
@@ -831,7 +853,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                       },
                       onChanged: refreshTotal,
                       onNextItem: () {
-                        addItem();
+                        _completeCurrentItem(index);
                       },
                     ),
                   ),

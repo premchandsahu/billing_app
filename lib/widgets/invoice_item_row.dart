@@ -26,6 +26,7 @@ class InvoiceItemRow extends StatefulWidget {
 
 class _InvoiceItemRowState extends State<InvoiceItemRow> {
   late final FocusNode _qtyFocusNode;
+  late final FocusNode _rateFocusNode;
   late final TextEditingController _qtyController;
   late final TextEditingController _rateController;
 
@@ -90,6 +91,7 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                textInputAction: TextInputAction.next,
                 textAlign: TextAlign.right,
                 style: const TextStyle(fontSize: 14),
                 decoration: const InputDecoration(
@@ -102,6 +104,9 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
                   ),
                 ),
                 onChanged: _qtyChanged,
+                onSubmitted: (_) {
+                  _rateFocusNode.requestFocus();
+                },
               ),
             ),
           ),
@@ -119,6 +124,7 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
             child: Center(
               child: TextField(
                 controller: _rateController,
+                focusNode: _rateFocusNode,
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -134,6 +140,9 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
                   ),
                 ),
                 onChanged: _rateChanged,
+                onSubmitted: (_) {
+                  widget.onNextItem();
+                },
               ),
             ),
           ),
@@ -277,6 +286,7 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
                 child: TextField(
                   controller: _qtyController,
                   focusNode: _qtyFocusNode,
+                  textInputAction: TextInputAction.next,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -291,6 +301,9 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
                     ),
                   ),
                   onChanged: _qtyChanged,
+                  onSubmitted: (_) {
+                    _rateFocusNode.requestFocus();
+                  },
                 ),
               ),
 
@@ -300,9 +313,11 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
                 flex: 4,
                 child: TextField(
                   controller: _rateController,
+                  focusNode: _rateFocusNode,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  textInputAction: TextInputAction.done,
                   textAlign: TextAlign.right,
                   decoration: const InputDecoration(
                     labelText: 'Rate',
@@ -314,6 +329,9 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
                     ),
                   ),
                   onChanged: _rateChanged,
+                  onSubmitted: (_) {
+                    widget.onNextItem();
+                  },
                 ),
               ),
 
@@ -379,6 +397,8 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
   void initState() {
     super.initState();
     _qtyFocusNode = FocusNode();
+    _rateFocusNode = FocusNode();
+
     _qtyController = TextEditingController(text: _getQtyText());
 
     _rateController = TextEditingController(text: _getRateText());
@@ -463,6 +483,7 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
     _qtyController.dispose();
     _rateController.dispose();
     _qtyFocusNode.dispose();
+    _rateFocusNode.dispose();
 
     //  _qtyFocusNode.dispose();
     //  _rateFocusNode.dispose();
