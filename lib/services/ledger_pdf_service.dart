@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:billing_app/models/account_transaction.dart';
+import 'package:billing_app/models/aging.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -13,6 +14,7 @@ class LedgerPdfService {
     required String customername,
     required double openingbalance,
     required List<AccountTransaction> items,
+    required List<Aging> aging,
   }) async {
     final pdf = pw.Document();
     final DateFormat df = DateFormat("dd-MM-yy");
@@ -103,7 +105,17 @@ class LedgerPdfService {
               }).toList(),
             ),
 
-            pw.SizedBox(height: 20),
+            pw.Row(
+              //crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+              children: [
+                pw.Text("<30 Days: ${aging[0].ca30},"),
+                pw.Text("<60 Days: ${aging[0].ca60},"),
+                pw.Text("<120 Days: ${aging[0].ca120},"),
+                pw.Text("<180 Days: ${aging[0].ca180},"),
+                pw.Text(">180 Days: ${aging[0].caa180}"),
+              ],
+            ),
 
             //          pw.Align(
             //            alignment: pw.Alignment.centerRight,

@@ -140,10 +140,10 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         return;
       }
 
-      if (item.qty <= 0) {
-        _showMessage("Quantity must be greater than zero");
-        return;
-      }
+      //if (item.qty <= 0) {
+      //  _showMessage("Quantity must be greater than zero");
+      //  return;
+      //}
     }
 
     final lines = items.map((e) {
@@ -281,17 +281,21 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
       return;
     }
 
-    final pdfBytes = await InvoicePdfService.generateInvoicePdf(
-      invoiceNo: widget.invoiceNo!,
-      invoiceDate: invoiceDate,
-      customer: selectedCustomer!,
-      items: items,
-    );
+    try {
+      final pdfBytes = await InvoicePdfService.generateInvoicePdf(
+        invoiceNo: widget.invoiceNo!,
+        invoiceDate: invoiceDate,
+        customer: selectedCustomer!,
+        items: items,
+      );
 
-    await InvoiceShareService.shareInvoicePdf(
-      pdfBytes: pdfBytes,
-      invoiceNo: widget.invoiceNo!,
-    );
+      await InvoiceShareService.shareInvoicePdf(
+        pdfBytes: pdfBytes,
+        invoiceNo: widget.invoiceNo!,
+      );
+    } catch (e) {
+      _showMessage("Unable to share invoice: $e");
+    }
   }
 
   // ------------------------------------------------------------

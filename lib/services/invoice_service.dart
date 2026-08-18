@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:billing_app/models/account_balance.dart';
 import 'package:billing_app/models/account_transaction.dart';
+import 'package:billing_app/models/aging.dart';
 import 'package:billing_app/models/centers.dart';
 import 'package:billing_app/models/customer_receipt_summary.dart';
 import 'package:billing_app/models/paymentmode.dart';
@@ -233,7 +234,6 @@ class InvoiceService {
   }
 
   Future<bool> updateReceipt(Receipt receipt) async {
-    final bodydata = jsonEncode(receipt.toJson());
     final response = await http.put(
       Uri.parse("${Api.customerreceipt}/$receipt.customerreceiptno"),
       headers: {"Content-Type": "application/json"},
@@ -324,5 +324,21 @@ class InvoiceService {
     }
 
     throw Exception("Unable to load invoices");
+  }
+
+  Future<List<Aging>> getAging({int? custno}) async {
+    final response = await http.post(
+      Uri.parse("${Api.reports}/aging"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"custno": custno ?? 0}),
+    );
+
+    if (response.statusCode == 200) {
+      final List list = jsonDecode(response.body);
+
+      return list.map((e) => Aging.fromJson(e)).toList();
+    }
+
+    throw Exception("Unable to load aging");
   }
 }

@@ -1,11 +1,13 @@
 import 'package:billing_app/models/account_balance.dart';
 import 'package:billing_app/models/account_transaction.dart';
+import 'package:billing_app/models/aging.dart';
 import 'package:billing_app/models/customer.dart';
 import 'package:billing_app/screens/invoice_screen.dart';
 import 'package:billing_app/screens/payment_receipt.dart';
 import 'package:billing_app/services/invoice_print_service.dart';
 import 'package:billing_app/services/ledger_pdf_service.dart';
 import 'package:billing_app/services/invoice_service.dart';
+import 'package:billing_app/services/ledger_share_service.dart';
 import 'package:billing_app/widgets/customer_search_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +42,7 @@ class _AccountLedgerListState extends State<AccountLedger> {
 
   List<AccountBalance> receipts = [];
   List<AccountTransaction> accounttransactions = [];
+  List<Aging> aging = [];
 
   bool loading = false;
 
@@ -79,6 +82,16 @@ class _AccountLedgerListState extends State<AccountLedger> {
         toDate: toDate,
         custno: selectedCustomerNo,
       );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+
+    try {
+      aging = await service.getAging(custno: selectedCustomerNo);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -132,6 +145,38 @@ class _AccountLedgerListState extends State<AccountLedger> {
     await loadInvoices();
   }
 
+  Future<void> _shareLedgerPdf() async {
+    if (selectedCustomer == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select customer')));
+      return;
+    }
+
+    try {
+      final pdfBytes = await LedgerPdfService.generatePdf(
+        fromdate: fromDate,
+        todate: toDate,
+        custno: selectedCustomerNo!,
+        customername: selectedCustomer!,
+        openingbalance: receipts[0].balance,
+        items: accounttransactions,
+        aging: aging,
+      );
+
+      await LedgerShareService.shareLedgerPdf(
+        pdfBytes: pdfBytes,
+        customername: widget.custname,
+        message:
+            "Period ${df.format(fromDate)}  to Period ${df.format(toDate)}, Op Bal: ${receipts[0].balance}, Invoice: $debitamount, Receipts: $creditamount, Cl Bal: ${receipts[0].balance + debitamount - creditamount} }",
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Unable to share invoice: $e")));
+    }
+  }
+
   Future<void> _printLedger() async {
     if (selectedCustomer == null) {
       ScaffoldMessenger.of(
@@ -154,6 +199,7 @@ class _AccountLedgerListState extends State<AccountLedger> {
       customername: selectedCustomer!,
       openingbalance: receipts[0].balance,
       items: accounttransactions,
+      aging: aging,
     );
 
     await InvoicePrintService.printInvoice(pdfBytes);
@@ -175,6 +221,12 @@ class _AccountLedgerListState extends State<AccountLedger> {
             icon: const Icon(Icons.print),
             tooltip: 'Print',
             onPressed: _printLedger,
+          ),
+
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: "WhatsApp / Share",
+            onPressed: _shareLedgerPdf,
           ),
         ],
       ),
@@ -371,6 +423,18 @@ class _AccountLedgerListState extends State<AccountLedger> {
                     ),
                   );
                 },
+              ),
+            const SizedBox(height: 10),
+            if (aging.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("<30: ${aging[0].ca30},"),
+                  Text("<60: ${aging[0].ca60},"),
+                  Text("<120: ${aging[0].ca120},"),
+                  Text("<180: ${aging[0].ca180},"),
+                  Text(">180: ${aging[0].caa180}"),
+                ],
               ),
           ],
         ),

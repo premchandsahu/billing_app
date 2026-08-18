@@ -409,15 +409,23 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
   // Synchronize TextFields when InvoiceScreen changes
   // product / qty / rate.
   // ------------------------------------------------------------
+
   @override
   void didUpdateWidget(covariant InvoiceItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Synchronize controller values with the InvoiceItem.
-    _syncControllers();
-
-    // Product was selected -> request Qty focus.
+    // Product was selected/changed.
+    //
+    // InvoiceScreen increments qtyFocusRequest after selecting
+    // a product. We use that event to populate the Rate field.
     if (widget.qtyFocusRequest != oldWidget.qtyFocusRequest) {
+      final rateText = _getRateText();
+
+      _rateController.value = TextEditingValue(
+        text: rateText,
+        selection: TextSelection.collapsed(offset: rateText.length),
+      );
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _qtyFocusNode.requestFocus();
@@ -425,6 +433,7 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
       });
     }
   }
+
   // ------------------------------------------------------------
   // QTY TEXT
   // ------------------------------------------------------------
@@ -451,27 +460,6 @@ class _InvoiceItemRowState extends State<InvoiceItemRow> {
     }
 
     return widget.item.rate.toStringAsFixed(2);
-  }
-
-  void _syncControllers() {
-    final qtyText = _getQtyText();
-    final rateText = _getRateText();
-
-    // Sync only when the displayed value is actually different.
-    // This prevents the cursor from jumping while typing.
-    if (_qtyController.text != qtyText) {
-      _qtyController.value = TextEditingValue(
-        text: qtyText,
-        selection: TextSelection.collapsed(offset: qtyText.length),
-      );
-    }
-
-    if (_rateController.text != rateText) {
-      _rateController.value = TextEditingValue(
-        text: rateText,
-        selection: TextSelection.collapsed(offset: rateText.length),
-      );
-    }
   }
 
   // ------------------------------------------------------------
